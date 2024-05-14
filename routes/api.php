@@ -7,4 +7,4 @@ use App\Http\Controllers\OtpController;
 Route::post('/send-otp', [OtpController::class, 'sendOtp']);
 Route::post('/test-mail', [OtpController::class, 'testMail']);
 Route::post('/verify-otp', [OtpController::class, 'verifyOtp']);
-Route::post('/createAccount', [OtpController::class, 'createAccount']);
+Route::post('/dataSubmit', [OtpController::class, 'dataSubmit']);

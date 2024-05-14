@@ -12,6 +12,11 @@ class Register extends Model
         'email',
         'f_name',
         'l_name',
+        'mobile',
+        'messenger',
+        'password',
+        'confirmpassword',
+        'otp',
         'status',
     ];
 }

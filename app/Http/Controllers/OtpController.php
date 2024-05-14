@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OtpMail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use App\Models\Register;
 
 
@@ -50,17 +53,10 @@ class OtpController extends Controller
         $cachedData = Cache::get('otp_' . $email);
 
         if ($cachedData && $cachedData['otp'] == $otp) {
-            Register::create([
-                'email' => $email,
-                'f_name' => $cachedData['fname'],
-                'l_name' => $cachedData['lname'],
-                'status' => "Active"
-            ]);
 
             Cache::forget('otp_' . $email);
-
             return response()->json([
-                'status' => 'Registration successful',
+                'status' => 'Verification successful',
             ]);
         } else {
             return response()->json([
@@ -68,6 +64,51 @@ class OtpController extends Controller
             ], 422);
         }
     }
+
+
+
+public function dataSubmit(Request $request)
+{
+    try {
+        $validatedData = $request->validate([
+            'email' => 'required|email',
+            'fname' => 'required|string',
+            'lname' => 'required|string',
+            'mobile' => 'required|string',
+            'messenger' => 'nullable|string',
+            'password' => 'required|string|min:8',
+            'confirmpassword' => 'required|string|same:password',
+        ]);
+
+        $email = $validatedData['email'];
+        $firstName = $validatedData['fname'];
+        $lastName = $validatedData['lname'];
+        $mobile = $validatedData['mobile'];
+        $messenger = $validatedData['messenger'];
+        $password = $validatedData['password'];
+        $confirmPassword = $validatedData['confirmpassword'];
+
+        $user = new Register([
+            'email' => $email,
+            'f_name' => $firstName,
+            'l_name' => $lastName,
+            'mobile' => $mobile,
+            'messenger' => $messenger,
+            'password' => Hash::make($password),
+            'confirmpassword' => Hash::make($password),
+            'status'=>'active'
+        ]);
+        $user->save();
+        return response()->json(['message' => 'User created successfully'], 201);
+
+    } catch (ValidationException $e) {
+        return response()->json(['message' => $e->errors()], 422);
+    } catch (\Exception $e) {
+        return response()->json(['message' => $e->getMessage()], 500);
+    }
+
+}
+
 
 
 

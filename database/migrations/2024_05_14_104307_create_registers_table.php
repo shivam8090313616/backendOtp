@@ -13,6 +13,10 @@ class CreateRegistersTable extends Migration
             $table->string('email');
             $table->string('f_name');
             $table->string('l_name');
+            $table->string('mobile');
+            $table->string('messenger');
+            $table->string('password');
+            $table->string('confirmpassword');
             $table->string('status');
             $table->timestamps();
         });
