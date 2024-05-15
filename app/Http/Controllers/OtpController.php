@@ -20,8 +20,11 @@ class OtpController extends Controller
     {
         $validatedData = $request->validate([
             'email' => 'required|email',
-            'fname' => 'required|string',
-            'lname' => 'required|string',
+            'fname' => 'required|alpha',
+            'lname' => 'required|alpha',
+        ], [
+            'fname.alpha' => 'The first name must contain only alphabetic characters.',
+            'lname.alpha' => 'The last name must contain only alphabetic characters.',
         ]);
 
         $email = $validatedData['email'];
@@ -35,7 +38,8 @@ class OtpController extends Controller
         Cache::put('otp_' . $email, ['otp' => $otp, 'fname' => $fname, 'lname' => $lname], now()->addSeconds(60));
 
         return response()->json([
-            'status' => 'OTP sent successfully',
+            'message'=>'OTP sent successfully',
+            'status' => 'false',
             'otp' => $otp,
         ]);
     }
