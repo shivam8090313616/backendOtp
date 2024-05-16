@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-
+use App\Http\Controllers\Response;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -19,10 +19,11 @@ class OtpController extends Controller
     public function sendOtp(Request $request)
     {
         $validatedData = $request->validate([
-            'email' => 'required|email',
+            'email' => 'required|email|unique:registers,email',
             'fname' => 'required|alpha',
             'lname' => 'required|alpha',
         ], [
+            'email.unique' => 'The email address has already been taken.',
             'fname.alpha' => 'The first name must contain only alphabetic characters.',
             'lname.alpha' => 'The last name must contain only alphabetic characters.',
         ]);
@@ -38,14 +39,15 @@ class OtpController extends Controller
         Cache::put('otp_' . $email, ['otp' => $otp, 'fname' => $fname, 'lname' => $lname], now()->addSeconds(60));
 
         return response()->json([
-            'message'=>'OTP sent successfully',
-            'status' => 'false',
+            'message' => 'OTP sent successfully',
+            'status' => true,
             'otp' => $otp,
         ]);
     }
 
-    public function verifyOtp(Request $request)
-    {
+
+
+    public function verifyOtp(Request $request) {
         $validatedData = $request->validate([
             'email' => 'required|email',
             'otp' => 'required|numeric|digits:6',
@@ -69,20 +71,46 @@ class OtpController extends Controller
         }
     }
 
+    public function valContact(Request $request)
+    {
+        $mobile = $request->input('mobile');
+        $existingUser = Register::where('mobile', $mobile)->first();
+
+        if ($existingUser) {
+            // Mobile number already registered, return an error response
+            return response()->json(['error' => 'This contact info is already registered.'], 422);
+        } else {
+            // Mobile number is not registered, return a success response
+            return response()->json(['message' => 'Mobile number is available.'], 200);
+        }
+    }
 
 
-public function dataSubmit(Request $request)
-{
+
+
+
+
+public function dataSubmit(Request $request){
     try {
         $validatedData = $request->validate([
-            'email' => 'required|email',
-            'fname' => 'required|string',
-            'lname' => 'required|string',
+            'email' => 'required|email|unique:registers,email',
+            'fname' => 'required|string|max:20',
+            'lname' => 'required|string|max:20',
             'mobile' => 'required|string',
-            'messenger' => 'nullable|string',
-            'password' => 'required|string|min:8',
+            'messenger' => 'nullable|string|max:10',
+            'password' => [
+                'required',
+                'string',
+                'max:8',
+                'min:4',
+                'regex:/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{4,8}$/',
+            ],
             'confirmpassword' => 'required|string|same:password',
+        ], [
+            'email.unique' => 'Email is already registered',
+            'password.regex' => 'Password must contain at least one letter, one number, and one special character',
         ]);
+
 
         $email = $validatedData['email'];
         $firstName = $validatedData['fname'];
@@ -114,6 +142,34 @@ public function dataSubmit(Request $request)
 }
 
 
+
+    public function dashboard(Request $request)
+    {
+        $latestUser = Register::latest()->first();
+
+        if ($latestUser) {
+            $userData = [
+                'id' => $latestUser->id,
+                'fname' => $latestUser->f_name,
+                'lname' => $latestUser->l_name,
+                'email' => $latestUser->email,
+                'mobile' => $latestUser->mobile,
+                'messenger' => $latestUser->messenger,
+            ];
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Latest user data retrieved successfully',
+                'data' => $userData,
+            ], 200);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'No user found',
+                'data' => null,
+            ], 404);
+        }
+    }
 
 
 }

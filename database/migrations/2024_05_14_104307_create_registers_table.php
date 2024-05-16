@@ -10,7 +10,7 @@ class CreateRegistersTable extends Migration
     {
         Schema::create('registers', function (Blueprint $table) {
             $table->id();
-            $table->string('email');
+            $table->string('email')->unique();
             $table->string('f_name');
             $table->string('l_name');
             $table->string('mobile');
