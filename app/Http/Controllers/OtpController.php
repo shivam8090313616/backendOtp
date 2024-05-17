@@ -96,8 +96,8 @@ public function dataSubmit(Request $request){
             'email' => 'required|email|unique:registers,email',
             'fname' => 'required|string|max:20',
             'lname' => 'required|string|max:20',
-            'mobile' => 'required|string',
-            'messenger' => 'nullable|string|max:10',
+            'mobile' => 'required|string|max:10',
+            'messenger' => 'nullable|string|max:15',
             'password' => [
                 'required',
                 'string',
